@@ -1,0 +1,17 @@
+{
+    "name": "ixcsoft/mindup-manager",
+    "type": "project",
+    "license": "proprietary",
+    "autoload": {
+        "psr-4": {
+            "Ixcsoft\\MindupManager\\": "src/"
+        }
+    },
+    "minimum-stability": "stable",
+    "require": {
+        "slim/slim": "4.*",
+        "slim/twig-view": "^3.3",
+        "slim/psr7": "^1.6",
+      "ext-pdo": "*"
+    }
+}
