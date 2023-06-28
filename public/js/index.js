@@ -53,6 +53,7 @@ function createLine(column) {
             newTaskList.insertBefore(curTask, bottomTask);
         }
     });
+    toastW()
     drag(newLane)
 
     return lineContainer;
@@ -143,6 +144,32 @@ function toastW(){
     }, 10);
     console.log(toast)
 }
+function toastL(){
+    const toastError = document.createElement("div");
+    toastError.classList.add("toastL");
+    const pError = document.createElement("p");
+    pError.classList.add("toastTittle");
+    const strong = document.createElement("strong");
+    strong.innerText = "Erro: " + error.message;
+
+    pError.appendChild(strong)
+    toastError.appendChild(pError);
+
+    const parentElement = document.body;
+    const firstChild = parentElement.firstChild;
+    parentElement.insertBefore(toastError, firstChild);
+    setTimeout(function () {
+        toastError.classList.add("hide");
+        setTimeout(function () {
+            toastError.remove();
+        }, 300);
+    }, 3000);
+
+    setTimeout(function () {
+        toastError.classList.add("show");
+    }, 10);
+    console.log(toastError)
+}
 function addTask(columnId, taskName, taskId) {
     const column = document.getElementById("column-" + columnId);
     const taskList = column.querySelector(".task-list");
@@ -164,32 +191,7 @@ function addTask(columnId, taskName, taskId) {
     taskList.appendChild(newTask);
 }
 
-// function alertError() {
-//     const existingToast = document.getElementById('toastErr');
-//     if (existingToast) {
-//         existingToast.remove();
-//     }
-//
-//     const toast = document.createElement("div");
-//     toast.classList.add("toast");
-//     toast.id = 'toast';
-//
-//     const strong = document.createElement("strong");
-//     strong.innerText = 'Atualização feita com sucesso!!';
-//
-//     toast.appendChild(strong);
-//
-//     const parentElement = document.body;
-//     const firstChild = parentElement.firstChild;
-//     parentElement.insertBefore(toast, firstChild);
-//
-//
-//     const toastTimeout = 3000;
-//
-//     setTimeout(function () {
-//         toast.remove();
-//     }, toastTimeout);
-// }
+
 
 function main() {
     fetch("/admin/get-column")
@@ -216,38 +218,9 @@ function main() {
                         });
                     })
                     .catch((error) => {
-                        console.error("Error fetching tasks:", );
-                        const existingToast = document.getElementById('toast');
-                        if (existingToast) {
-                            existingToast.remove();
-                        }
-                        const toastError = document.createElement("div");
-                        toastError.classList.add("toastL");
-                        const pError = document.createElement("p");
-                        pError.classList.add("toastTittle");
-                        const strong = document.createElement("strong");
-                        strong.innerText = "Erro: " + error.message;
-
-                        pError.appendChild(strong)
-                        toastError.appendChild(pError);
-
-                        const parentElement = document.body;
-                        const firstChild = parentElement.firstChild;
-                        parentElement.insertBefore(toastError, firstChild);
-                        setTimeout(function () {
-                            toastError.classList.add("hide");
-                            setTimeout(function () {
-                                toastError.remove();
-                            }, 300);
-                        }, 3000);
-
-                        setTimeout(function () {
-                            toastError.classList.add("show");
-                        }, 10);
-                        console.log(toastError)
-
+                        console.error("Error fetching tasks:", error.message);
+                        toastL()
                     });
-
             });
         })
         .catch((error) => {
