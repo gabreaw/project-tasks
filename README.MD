@@ -3,7 +3,7 @@
 
 Para iniciar o servidor web:
 ```bash
- cd public && php -S localhost:8000
+ php -S localhost:8000
 ```
 
         const bottomTask = insertAboveTask(zone, e.clientY);
