@@ -86,8 +86,6 @@ function drag(zone) {
             const taskId = task.getAttribute("id").substring(5);
             taskOrder.push(taskId);
         });
-        console.log(task)
-        console.log(taskOrder)
         const request = new XMLHttpRequest();
         request.open("POST", "/admin/update-task", false);
 
@@ -142,9 +140,8 @@ function toastW(){
     setTimeout(function () {
         toast.classList.add("show");
     }, 10);
-    console.log(toast)
 }
-function toastL(){
+function toastL(error){
     const toastError = document.createElement("div");
     toastError.classList.add("toastL");
     const pError = document.createElement("p");
@@ -168,7 +165,6 @@ function toastL(){
     setTimeout(function () {
         toastError.classList.add("show");
     }, 10);
-    console.log(toastError)
 }
 function addTask(columnId, taskName, taskId) {
     const column = document.getElementById("column-" + columnId);
@@ -219,7 +215,7 @@ function main() {
                     })
                     .catch((error) => {
                         console.error("Error fetching tasks:", error.message);
-                        toastL()
+                        toastL(error)
                     });
             });
         })
