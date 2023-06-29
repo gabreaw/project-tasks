@@ -1,23 +1,50 @@
 const input = document.getElementById("todo-input");
 const btn = document.getElementById("btn");
 
+const socket = new WebSocket("ws://localhost:8081/admin");
+socket.addEventListener("open", () => {
+    console.log("Conexão estabelecida com sucesso!");
+});
+socket.addEventListener("message", (event) => {
+
+    const message = JSON.parse(event.data);
+    updateContent(message);
+});
+
 btn.addEventListener("click", (event) => {
     event.preventDefault();
+    const name = input.value;
+
+    const message = {
+        type: "add-task",
+        name: name,
+    };
+    socket.send(JSON.stringify(message));
+
     let request = new XMLHttpRequest();
-    request.open("POST", "/admin/store", false);
+    request.open("POST", "/admin/store", true);
 
     const formData = new FormData();
     formData.append("name", input.value);
 
+    request.onload = function () {
+        if (request.status >= 200 && request.status < 400) {
+            const response = JSON.parse(request.responseText);
+            addTask(response.columnId, response.taskName, response.taskId);
+        } else {
+            console.error("Erro na requisição:", request.statusText);
+        }
+    };
+
+    request.onerror = function () {
+        console.error("Erro na requisição: falha de rede");
+    };
+
     request.send(formData);
-    console.log(request.responseText);
 
-    let response = JSON.parse(request.responseText);
-
-    console.log(response);
-
-    location.reload();
+    input.value = '';
 });
+
 
 const lanesContainer = document.querySelector(".lanes");
 
@@ -53,11 +80,22 @@ function createLine(column) {
             newTaskList.insertBefore(curTask, bottomTask);
         }
     });
-    toastW()
     drag(newLane)
 
     return lineContainer;
 }
+
+function updateContent(message) {
+    if (message.type === "update-task") {
+        const taskId = message.taskId;
+        const newTaskName = message.taskName;
+        const taskElement = document.getElementById("task-" + taskId);
+        if (taskElement) {
+            taskElement.innerText = newTaskName;
+        }
+    }
+}
+
 
 function drag(zone) {
     zone.addEventListener("dragover", (e) => {
@@ -89,17 +127,25 @@ function drag(zone) {
         const request = new XMLHttpRequest();
         request.open("POST", "/admin/update-task", false);
 
-
         request.onload = function () {
             if (request.status >= 200 && request.status < 400) {
-                toastW()
+                const message = {
+                    type: "task-updated",
+                    columnId: columnId,
+                    taskId: taskId,
+                    taskOrder: taskOrder
+                };
+                toastW();
+                socket.send(JSON.stringify(message))
+
             } else {
                 console.error("Erro na requisição:", request.statusText);
             }
-        }
+        };
         request.onerror = function () {
             console.error("Erro na requisição: falha de rede");
         };
+
         const formData = new FormData;
         for (var i = 0; i < taskOrder.length; i++) {
             formData.append('taskOrder[]', taskOrder[i]);
@@ -141,7 +187,7 @@ function toastW(){
         toast.classList.add("show");
     }, 10);
 }
-function toastL(error){
+function toastL(){
     const toastError = document.createElement("div");
     toastError.classList.add("toastL");
     const pError = document.createElement("p");
@@ -215,7 +261,7 @@ function main() {
                     })
                     .catch((error) => {
                         console.error("Error fetching tasks:", error.message);
-                        toastL(error)
+                        toastL()
                     });
             });
         })
@@ -224,5 +270,5 @@ function main() {
         });
 }
 
-main();
+document.addEventListener("DOMContentLoaded", main);
 input.value = '';
