@@ -6,7 +6,6 @@ socket.addEventListener("open", () => {
     console.log("Conexão estabelecida com sucesso!");
 });
 socket.addEventListener("message", (event) => {
-
     const message = JSON.parse(event.data);
     updateContent(message);
 });
@@ -30,7 +29,7 @@ btn.addEventListener("click", (event) => {
     request.onload = function () {
         if (request.status >= 200 && request.status < 400) {
             const response = JSON.parse(request.responseText);
-            addTask(response.columnId, response.taskName, response.taskId);
+            addTask(response.columnId, response.taskId);
         } else {
             console.error("Erro na requisição:", request.statusText);
         }
@@ -86,15 +85,21 @@ function createLine(column) {
 }
 
 function updateContent(message) {
-    if (message.type === "update-task") {
+    console.log("Mensagem recebida:", message);
         const taskId = message.taskId;
-        const newTaskName = message.taskName;
-        const taskElement = document.getElementById("task-" + taskId);
+        const taskName = message.name;
+        console.log("ID da tarefa:", taskId);
+        console.log("Nome da tarefa:", taskName);
+
+        const taskElement = document.getElementById(taskId);
+        console.log("Elemento da tarefa:", taskElement);
+
         if (taskElement) {
-            taskElement.innerText = newTaskName;
+            taskElement.innerText = taskName;
         }
-    }
 }
+
+
 
 
 function drag(zone) {
@@ -130,12 +135,13 @@ function drag(zone) {
         request.onload = function () {
             if (request.status >= 200 && request.status < 400) {
                 const message = {
-                    type: "task-updated",
-                    columnId: columnId,
-                    taskId: taskId,
-                    taskOrder: taskOrder
+                    type: "update-task",
+                    taskId: task.getAttribute("id"),
+                    name: task.innerText
                 };
+                updateContent(message);
                 toastW();
+                console.log(message)
                 socket.send(JSON.stringify(message))
 
             } else {
@@ -232,20 +238,23 @@ function addTask(columnId, taskName, taskId) {
 
     taskList.appendChild(newTask);
 }
-
-
-
 function main() {
+    const lanes = document.querySelectorAll(".swim-lane");
+    lanes.forEach((lane) => {
+        lane.parentNode.removeChild(lane);
+    });
+
     fetch("/admin/get-column")
         .then((response) => response.json())
         .then((columns) => {
             columns.forEach((column) => {
                 const line = createLine(column);
                 lanesContainer.appendChild(line);
+
                 fetch(`/admin/get-tasks-by-column/${column.id}`)
                     .then((response) => {
                         if (!response.ok) {
-                            throw new Error(`HTTP error, status = ${response.status}`);
+                            throw new Error(`Erro na requisição, status = ${response.status}`);
                         }
                         if (response.status !== 204) {
                             return response.json();
@@ -260,13 +269,13 @@ function main() {
                         });
                     })
                     .catch((error) => {
-                        console.error("Error fetching tasks:", error.message);
-                        toastL()
+                        console.error("Erro ao buscar tarefas:", error.message);
+                        toastL();
                     });
             });
         })
         .catch((error) => {
-            console.error("Error fetching columns:", error);
+            console.error("Erro ao buscar colunas:", error);
         });
 }
 
