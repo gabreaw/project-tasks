@@ -11,7 +11,11 @@ use Slim\Views\Twig;
 
 class SubmitController
 {
+    public function view(ServerRequestInterface $request, ResponseInterface $response)
+    {
+        return Twig::fromRequest($request)->render($response, 'view.html');
 
+    }
     public function create(ServerRequestInterface $request, ResponseInterface $response)
     {
         return Twig::fromRequest($request)->render($response, 'index.html');
@@ -31,14 +35,7 @@ class SubmitController
         if (!$result) {
             throw new RuntimeException('Erro ao inserir a ideia no banco de dados');
         }
-
         header("Location: /view");
         exit();
-    }
-
-    public function view(ServerRequestInterface $request, ResponseInterface $response)
-    {
-        return Twig::fromRequest($request)->render($response, 'view.html');
-
     }
 }

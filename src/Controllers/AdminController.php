@@ -13,6 +13,36 @@ use Slim\Views\Twig;
 class AdminController
 {
 
+    public function view(ServerRequestInterface $request, ResponseInterface $response)
+    {
+
+        $view = Twig::fromRequest($request);
+        return $view->render($response, 'admin.html');
+    }
+
+    public function store(ServerRequestInterface $request, ResponseInterface $response)
+    {
+        $params = $request->getParsedBody();
+        if (!isset($params['name'])) {
+            throw new RuntimeException('Parâmetro name faltando.');
+        }
+
+        $name = $params['name'];
+        $dir = dirname(__DIR__, 2) . '/database/phpsqlite.db';
+        $pdo = new PDO('sqlite:' . $dir);
+        $sql = "INSERT INTO columns(name)VALUES (?)";
+        $stmt = $pdo->prepare($sql);
+
+
+        $result = $stmt->execute([$name]);
+        if (!$result) {
+            throw new RuntimeException('Erro ao inserir a ideia no banco de dados');
+        }
+
+        header("Location: /admin");
+        exit();
+    }
+
     public function getTasks(ServerRequestInterface $request, ResponseInterface $response)
     {
         $dir = dirname(__DIR__, 2) . '/database/phpsqlite.db';
@@ -44,15 +74,12 @@ class AdminController
         return $response;
     }
 
-
-
-
     public function updateTask(ServerRequestInterface $request, ResponseInterface $response)
     {
         $params = $request->getParsedBody();
         $taskId = substr($params['taskId'], 5);
-        if(!isset($params['taskOrder'])){
-          $params['taskOrder'] = [0 => $taskId];
+        if (!isset($params['taskOrder'])) {
+            $params['taskOrder'] = [0 => $taskId];
         }
         if (!isset($params['taskId'], $params['columnId'], $params['taskOrder'])) {
             throw new RuntimeException('Parâmetros taskId, columnId e taskOrder são obrigatórios.');
@@ -98,11 +125,6 @@ class AdminController
     }
 
 
-
-
-
-
-
     public function getTasksByColumn(ServerRequestInterface $request, ResponseInterface $response, $data)
     {
         $dir = dirname(__DIR__, 2) . '/database/phpsqlite.db';
@@ -120,35 +142,5 @@ class AdminController
         $response->getBody()->write(json_encode($tasks));
 
         return $response;
-    }
-
-    public function view(ServerRequestInterface $request, ResponseInterface $response)
-    {
-
-        $view = Twig::fromRequest($request);
-        return $view->render($response, 'admin.html');
-    }
-
-    public function store(ServerRequestInterface $request, ResponseInterface $response)
-    {
-        $params = $request->getParsedBody();
-        if (!isset($params['name'])) {
-            throw new RuntimeException('Parâmetro name faltando.');
-        }
-
-        $name = $params['name'];
-        $dir = dirname(__DIR__, 2) . '/database/phpsqlite.db';
-        $pdo = new PDO('sqlite:' . $dir);
-        $sql = "INSERT INTO columns(name)VALUES (?)";
-        $stmt = $pdo->prepare($sql);
-
-
-        $result = $stmt->execute([$name]);
-        if (!$result) {
-            throw new RuntimeException('Erro ao inserir a ideia no banco de dados');
-        }
-
-        header("Location: /admin");
-        exit();
     }
 }

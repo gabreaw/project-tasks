@@ -22,24 +22,15 @@
     $app->add(TwigMiddleware::create($app, $twig));
 
     $app->get('/', [SubmitController::class, 'create']);
-
     $app->get('/view', [SubmitController::class, 'view']);
-
-    $app->post('/store', [SubmitController::class, 'store']);
-
-    $app->post('/admin/store', [AdminController::class, 'store']);
-
     $app->get('/admin', [AdminController::class, 'view']);
-
     $app->get('/admin/get-tasks', [AdminController::class, 'getTasks']);
     $app->get('/admin/get-column', [AdminController::class, 'getColumn']);
     $app->get('/admin/get-tasks-by-column/{columnId}', [AdminController::class, 'getTasksByColumn']);
+
+    $app->post('/admin/store', [AdminController::class, 'store']);
     $app->post('/admin/update-task', [AdminController::class, 'updateTask']);
-
-
-
-
-
+    $app->post('/store', [SubmitController::class, 'store']);
 
     // Run app
     $app->run();
