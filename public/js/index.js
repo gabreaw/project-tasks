@@ -1,19 +1,21 @@
 const input = document.getElementById("todo-input");
 const btn = document.getElementById("btn");
+const lanesContainer = document.querySelector(".lanes");
 
-const socket = new WebSocket("ws://localhost:8081/admin");
+const socket = new WebSocket("ws://localhost:8080/admin");
 socket.addEventListener("open", () => {
     console.log("Conexão estabelecida com sucesso!");
 });
 socket.addEventListener("message", (event) => {
+    // console.log("Mensagem recebida:", event.data);
     const message = JSON.parse(event.data);
-    updateContent(message);
+    toastW()
+    reload()
 });
-
 btn.addEventListener("click", (event) => {
+    resetColumns();
     event.preventDefault();
     const name = input.value;
-
     const message = {
         type: "add-task",
         name: name,
@@ -44,9 +46,6 @@ btn.addEventListener("click", (event) => {
     input.value = '';
 });
 
-
-const lanesContainer = document.querySelector(".lanes");
-
 function createLine(column) {
     const newLane = document.createElement("div");
     newLane.classList.add("swim-lane");
@@ -64,6 +63,7 @@ function createLine(column) {
     newLane.appendChild(newTaskList);
 
     const lineContainer = document.createElement("div");
+    lineContainer.classList.add("lineContainer")
     lineContainer.appendChild(newLane);
     lanesContainer.appendChild(lineContainer);
 
@@ -84,23 +84,25 @@ function createLine(column) {
     return lineContainer;
 }
 
-function updateContent(message) {
-    console.log("Mensagem recebida:", message);
-        const taskId = message.taskId;
-        const taskName = message.name;
-        console.log("ID da tarefa:", taskId);
-        console.log("Nome da tarefa:", taskName);
+function addTask(columnId, taskName, taskId) {
+    const column = document.getElementById("column-" + columnId);
+    const taskList = column.querySelector(".task-list");
 
-        const taskElement = document.getElementById(taskId);
-        console.log("Elemento da tarefa:", taskElement);
+    const newTask = document.createElement("div");
+    newTask.classList.add("task");
+    newTask.setAttribute("draggable", "true");
+    newTask.setAttribute("id", "task-" + taskId);
 
-        if (taskElement) {
-            taskElement.innerText = taskName;
-        }
+    newTask.innerText = taskName;
+
+    newTask.addEventListener("dragstart", () => {
+        newTask.classList.add("is-dragging");
+    });
+    newTask.addEventListener("dragend", () => {
+        newTask.classList.remove("is-dragging");
+    });
+    taskList.appendChild(newTask);
 }
-
-
-
 
 function drag(zone) {
     zone.addEventListener("dragover", (e) => {
@@ -139,11 +141,9 @@ function drag(zone) {
                     taskId: task.getAttribute("id"),
                     name: task.innerText
                 };
-                updateContent(message);
                 toastW();
-                console.log(message)
+                // console.log(message)
                 socket.send(JSON.stringify(message))
-
             } else {
                 console.error("Erro na requisição:", request.statusText);
             }
@@ -151,7 +151,6 @@ function drag(zone) {
         request.onerror = function () {
             console.error("Erro na requisição: falha de rede");
         };
-
         const formData = new FormData;
         for (var i = 0; i < taskOrder.length; i++) {
             formData.append('taskOrder[]', taskOrder[i]);
@@ -162,105 +161,26 @@ function drag(zone) {
         request.send(formData);
     });
 }
-
-function toastW(){
-    const existingToast = document.getElementById('toast');
-    if (existingToast) {
-        existingToast.remove();
-    }
-    const toast = document.createElement("div");
-    toast.classList.add("toastW");
-    toast.id = "toast";
-    const p = document.createElement("p");
-    p.classList.add("toastTittle");
-    const strong = document.createElement("strong");
-    strong.innerText = "Atualização feita com sucesso!!";
-
-    p.appendChild(strong)
-    toast.appendChild(p);
-
-    const parentElement = document.body;
-    const firstChild = parentElement.firstChild;
-    parentElement.insertBefore(toast, firstChild);
-    setTimeout(function () {
-        toast.classList.add("hide");
-        setTimeout(function () {
-            toast.remove();
-        }, 300);
-    }, 3000);
-
-    setTimeout(function () {
-        toast.classList.add("show");
-    }, 10);
-}
-function toastL(){
-    const toastError = document.createElement("div");
-    toastError.classList.add("toastL");
-    const pError = document.createElement("p");
-    pError.classList.add("toastTittle");
-    const strong = document.createElement("strong");
-    strong.innerText = "Erro: " + error.message;
-
-    pError.appendChild(strong)
-    toastError.appendChild(pError);
-
-    const parentElement = document.body;
-    const firstChild = parentElement.firstChild;
-    parentElement.insertBefore(toastError, firstChild);
-    setTimeout(function () {
-        toastError.classList.add("hide");
-        setTimeout(function () {
-            toastError.remove();
-        }, 300);
-    }, 3000);
-
-    setTimeout(function () {
-        toastError.classList.add("show");
-    }, 10);
-}
-function addTask(columnId, taskName, taskId) {
-    const column = document.getElementById("column-" + columnId);
-    const taskList = column.querySelector(".task-list");
-
-    const newTask = document.createElement("div");
-    newTask.classList.add("task");
-    newTask.setAttribute("draggable", "true");
-    newTask.setAttribute("id", "task-" + taskId);
-
-    newTask.innerText = taskName;
-
-    newTask.addEventListener("dragstart", () => {
-        newTask.classList.add("is-dragging");
-    });
-    newTask.addEventListener("dragend", () => {
-        newTask.classList.remove("is-dragging");
-    });
-
-    taskList.appendChild(newTask);
-}
-function main() {
-    const lanes = document.querySelectorAll(".swim-lane");
-    lanes.forEach((lane) => {
-        lane.parentNode.removeChild(lane);
-    });
-
+function reload() {
+    removeColumns();
     fetch("/admin/get-column")
-        .then((response) => response.json())
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(`Erro na requisição, status = ${response.status}`);
+            }
+            return response.json();
+        })
         .then((columns) => {
             columns.forEach((column) => {
-                const line = createLine(column);
-                lanesContainer.appendChild(line);
+                const newColumn = createLine(column);
+                lanesContainer.appendChild(newColumn);
 
                 fetch(`/admin/get-tasks-by-column/${column.id}`)
                     .then((response) => {
                         if (!response.ok) {
                             throw new Error(`Erro na requisição, status = ${response.status}`);
                         }
-                        if (response.status !== 204) {
-                            return response.json();
-                        } else {
-                            return [];
-                        }
+                        return response.json();
                     })
                     .then((tasks) => {
                         tasks.sort((a, b) => a.taskOrder - b.taskOrder);
@@ -278,6 +198,16 @@ function main() {
             console.error("Erro ao buscar colunas:", error);
         });
 }
+function removeColumns() {
+    const lanes = document.querySelectorAll(".lineContainer");
+    lanes.forEach((lane) => {
+        lane.remove();
+    });
+}
+function resetColumns() {
+    removeColumns();
+    reload();
+}
 
-document.addEventListener("DOMContentLoaded", main);
+document.addEventListener("DOMContentLoaded", reload);
 input.value = '';
