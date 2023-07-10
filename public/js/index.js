@@ -13,7 +13,7 @@ socket.addEventListener("message", (event) => {
     reload()
 });
 btn.addEventListener("click", (event) => {
-    resetColumns();
+    removeColumns();
     event.preventDefault();
     const name = input.value;
     const message = {
@@ -83,7 +83,7 @@ function createLine(column) {
     return lineContainer;
 }
 
-function addTask(columnId, taskName, taskId) {
+function addTask(columnId, taskName, taskId, taskDescription) {
     const column = document.getElementById("column-" + columnId);
     const taskList = column.querySelector(".task-list");
 
@@ -94,6 +94,10 @@ function addTask(columnId, taskName, taskId) {
 
     newTask.innerText = taskName;
 
+    newTask.addEventListener("click", () => {
+        modal(taskName, taskDescription);
+    });
+
     newTask.addEventListener("dragstart", () => {
         newTask.classList.add("is-dragging");
     });
@@ -101,6 +105,45 @@ function addTask(columnId, taskName, taskId) {
         newTask.classList.remove("is-dragging");
     });
     taskList.appendChild(newTask);
+}
+
+function modal(taskName, taskDescription) {
+    const modal = document.createElement("div");
+    modal.classList.add("modal-bd");
+
+    setTimeout(function() {
+        modal.classList.add("modal-ativo");
+    }, 100);
+
+    const container = document.createElement("div");
+    container.classList.add("container-fl");
+
+    const closeButton = document.createElement("button");
+    closeButton.classList.add("close-button");
+    closeButton.innerText = "X";
+
+    const col = document.createElement("div");
+    col.classList.add("texts");
+
+    const nameElement = document.createElement("h3");
+    nameElement.innerText = taskName;
+
+    const descriptionElement = document.createElement("p");
+    descriptionElement.innerText = taskDescription;
+
+    modal.addEventListener("click", function() {
+        modal.classList.add("modal-close");
+        setTimeout(function() {
+            modal.remove();
+        }, 300);
+    });
+
+    modal.appendChild(container);
+    container.appendChild(closeButton);
+    container.appendChild(col);
+    col.appendChild(nameElement);
+    col.appendChild(descriptionElement);
+    document.body.appendChild(modal);
 }
 
 function reload() {
@@ -116,7 +159,6 @@ function reload() {
             columns.forEach((column) => {
                 const newColumn = createLine(column);
                 lanesContainer.appendChild(newColumn);
-
                 fetch(`/admin/get-tasks-by-column/${column.id}`)
                     .then((response) => {
                         if (!response.ok) {
@@ -127,7 +169,7 @@ function reload() {
                     .then((tasks) => {
                         tasks.sort((a, b) => a.taskOrder - b.taskOrder);
                         tasks.forEach((task) => {
-                            addTask(column.id, task.title, task.id);
+                            addTask(column.id, task.title, task.id, task.description);
                         });
                     })
                     .catch((error) => {
@@ -140,6 +182,7 @@ function reload() {
             console.error("Erro ao buscar colunas:", error);
         });
 }
+
 function removeColumns() {
     const lanes = document.querySelectorAll(".lineContainer");
     lanes.forEach((lane) => {

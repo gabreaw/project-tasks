@@ -54,6 +54,8 @@ body {
 #inpt {
     box-shadow: 3px 3px #00153d;
     margin: 7px;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 #thx {
