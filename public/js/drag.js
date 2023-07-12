@@ -69,7 +69,7 @@ function drag(zone) {
                     taskId: task.getAttribute("id"),
                     name: task.innerText
                 };
-                toastW();
+                toastSuccess();
                 // console.log(message)
                 socket.send(JSON.stringify(message))
             } else {

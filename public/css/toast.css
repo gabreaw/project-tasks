@@ -1,4 +1,4 @@
-.toastW {
+.toastSuccess {
     position: absolute;
     right: 0;
     top: -100%;
@@ -24,15 +24,15 @@
 
 }
 
-.toastW.show {
+.toastSuccess.show {
     top: 10px;
 }
 
-.toastW.hide {
+.toastSuccess.hide {
     top: -100%;
 }
 
-.toastL {
+.toastError {
     position: absolute;
     right: 0;
     top: -100%;
@@ -58,11 +58,11 @@
 
 }
 
-.toastL.show {
+.toastError.show {
     top: 10px;
 }
 
-.toastL.hide {
+.toastError.hide {
     top: -100%;
 }
 

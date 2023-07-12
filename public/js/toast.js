@@ -1,10 +1,10 @@
-function toastW() {
+function toastSuccess() {
     const existingToast = document.getElementById('toast');
     if (existingToast) {
         existingToast.remove();
     }
     const toast = document.createElement("div");
-    toast.classList.add("toastW");
+    toast.classList.add("toastSuccess");
     toast.id = "toast";
     const p = document.createElement("p");
     p.classList.add("toastTittle");
@@ -32,9 +32,9 @@ function toastW() {
     }, 10);
 }
 
-function toastL(error) {
+function toastError(error) {
     const toastError = document.createElement("div");
-    toastError.classList.add("toastL");
+    toastError.classList.add("toastError");
     const pError = document.createElement("p");
     pError.classList.add("toastTittle");
     const strong = document.createElement("strong");

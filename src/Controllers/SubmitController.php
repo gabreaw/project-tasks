@@ -24,8 +24,12 @@ class SubmitController
     public function store(ServerRequestInterface $request, ResponseInterface $response)
     {
         $params = $request->getParsedBody();
-        $title = $params['title'] ?? '';
-        $description = $params['description'] ?? '';
+        if (empty($params['title']) || empty($params['description'])) {
+            throw new RuntimeException('Preencha os campos corretamente!');
+        }
+        $title = $params['title'];
+        $description = $params['description'];
+        var_dump($title, $description);
         $dir = dirname(__DIR__, 2) . '/database/phpsqlite.db';
         $pdo = new PDO('sqlite:' . $dir);
         $sql = "INSERT INTO tasks (title, description, created_at, column_task_id) VALUES (?, ?,  DATETIME('now'), 1)";

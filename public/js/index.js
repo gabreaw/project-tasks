@@ -9,7 +9,7 @@ socket.addEventListener("open", () => {
 socket.addEventListener("message", (event) => {
     // console.log("Mensagem recebida:", event.data);
     const message = JSON.parse(event.data);
-    toastW()
+    toastSuccess()
     reload()
 });
 btn.addEventListener("click", (event) => {
@@ -118,12 +118,9 @@ function modal(taskName, taskDescription) {
     const container = document.createElement("div");
     container.classList.add("container-fl");
 
-    const closeButton = document.createElement("button");
-    closeButton.classList.add("close-button");
-    closeButton.innerText = "X";
-
     const col = document.createElement("div");
     col.classList.add("texts");
+    col.style.position = "relative";
 
     const nameElement = document.createElement("h3");
     nameElement.innerText = taskName;
@@ -131,20 +128,27 @@ function modal(taskName, taskDescription) {
     const descriptionElement = document.createElement("p");
     descriptionElement.innerText = taskDescription;
 
-    modal.addEventListener("click", function() {
+    const closeButton = document.createElement("button");
+    closeButton.classList.add("close-button");
+    closeButton.innerText = "X";
+    closeButton.addEventListener("click", function() {
         modal.classList.add("modal-close");
         setTimeout(function() {
             modal.remove();
         }, 300);
     });
 
-    modal.appendChild(container);
-    container.appendChild(closeButton);
-    container.appendChild(col);
+    col.appendChild(closeButton);
     col.appendChild(nameElement);
     col.appendChild(descriptionElement);
+
+    container.appendChild(col);
+
+    modal.appendChild(container);
+
     document.body.appendChild(modal);
 }
+
 
 function reload() {
     removeColumns();
@@ -174,7 +178,7 @@ function reload() {
                     })
                     .catch((error) => {
                         console.error("Erro ao buscar tarefas:", error.message);
-                        toastL();
+                        toastError();
                     });
             });
         })
@@ -188,11 +192,6 @@ function removeColumns() {
     lanes.forEach((lane) => {
         lane.remove();
     });
-}
-
-function resetColumns() {
-    removeColumns();
-    reload();
 }
 
 document.addEventListener("DOMContentLoaded", reload);
