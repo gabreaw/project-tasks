@@ -2,20 +2,27 @@
 
 namespace Ixcsoft\MindupManager\Controllers;
 
-use Exception;
 use PDO;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use RuntimeException;
 use Slim\Views\Twig;
-
+use Ixcsoft\MindupManager\Services\AdminService;
+use Ixcsoft\MindupManager\Repository\DatabaseManager;
 
 class AdminController
 {
+    private $adminService;
+
+    public function __construct()
+    {
+        $pdo = new PDO('sqlite:' . dirname(__DIR__, 2) . '/database/phpsqlite.db');
+        $databaseManager = new DatabaseManager($pdo);
+        $this->adminService = new AdminService($databaseManager);
+    }
 
     public function view(ServerRequestInterface $request, ResponseInterface $response)
     {
-
         $view = Twig::fromRequest($request);
         return $view->render($response, 'admin.html');
     }
@@ -23,24 +30,11 @@ class AdminController
     public function store(ServerRequestInterface $request, ResponseInterface $response)
     {
         $params = $request->getParsedBody();
-        if (!isset($params['name'])) {
-            throw new RuntimeException('Parâmetro name faltando.');
-        }
-
         $name = $params['name'];
-        $dir = dirname(__DIR__, 2) . '/database/phpsqlite.db';
-        $pdo = new PDO('sqlite:' . $dir);
-        $sql = "INSERT INTO columns(name)VALUES (?)";
-        $stmt = $pdo->prepare($sql);
 
+        $this->adminService->createColumn($name);
 
-        $result = $stmt->execute([$name]);
-        if (!$result) {
-            throw new RuntimeException('Erro ao inserir a ideia no banco de dados');
-        }
-
-        header("Location: /admin");
-        exit();
+        return $response->withHeader("Location", "/admin");
     }
 
     public function getTasks(ServerRequestInterface $request, ResponseInterface $response)

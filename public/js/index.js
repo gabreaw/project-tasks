@@ -7,9 +7,6 @@ socket.addEventListener("open", () => {
     console.log("Conexão estabelecida com sucesso!");
 });
 socket.addEventListener("message", (event) => {
-    // console.log("Mensagem recebida:", event.data);
-    const message = JSON.parse(event.data);
-    toastSuccess()
     reload()
 });
 btn.addEventListener("click", (event) => {
@@ -34,11 +31,13 @@ btn.addEventListener("click", (event) => {
             addTask(response.columnId, response.taskId);
         } else {
             console.error("Erro na requisição:", request.statusText);
+            toastError();
         }
     };
 
     request.onerror = function () {
         console.error("Erro na requisição: falha de rede");
+        toastError();
     };
 
     request.send(formData);
@@ -135,7 +134,7 @@ function modal(taskName, taskDescription) {
         modal.classList.add("modal-close");
         setTimeout(function() {
             modal.remove();
-        }, 300);
+        }, 600);
     });
 
     col.appendChild(closeButton);

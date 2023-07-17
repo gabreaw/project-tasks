@@ -12,13 +12,10 @@
 
     require dirname(__DIR__) . '/vendor/autoload.php';
 
-    // Create App
     $app = AppFactory::create();
 
-    // Create Twig
     $twig = Twig::create(__DIR__ . '/views', ['cache' => false]);
 
-    // Add Twig-View Middleware
     $app->add(TwigMiddleware::create($app, $twig));
 
     $app->get('/', [SubmitController::class, 'create']);
@@ -32,6 +29,5 @@
     $app->post('/admin/update-task', [AdminController::class, 'updateTask']);
     $app->post('/store', [SubmitController::class, 'store']);
 
-    // Run app
     $app->run();
 

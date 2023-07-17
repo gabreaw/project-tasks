@@ -7,15 +7,23 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use RuntimeException;
 use Slim\Views\Twig;
-
+use Ixcsoft\MindupManager\Services\SubmitService;
+use Ixcsoft\MindupManager\Repository\DatabaseManager;
 
 class SubmitController
 {
+    private $submitService;
+
+    public function __construct(DatabaseManager $databaseManager)
+    {
+        $this->submitService = new SubmitService($databaseManager);
+    }
+
     public function view(ServerRequestInterface $request, ResponseInterface $response)
     {
         return Twig::fromRequest($request)->render($response, 'view.html');
-
     }
+
     public function create(ServerRequestInterface $request, ResponseInterface $response)
     {
         return Twig::fromRequest($request)->render($response, 'index.html');
@@ -24,22 +32,12 @@ class SubmitController
     public function store(ServerRequestInterface $request, ResponseInterface $response)
     {
         $params = $request->getParsedBody();
-        if (empty($params['title']) || empty($params['description'])) {
-            throw new RuntimeException('Preencha os campos corretamente!');
-        }
         $title = $params['title'];
         $description = $params['description'];
-        var_dump($title, $description);
-        $dir = dirname(__DIR__, 2) . '/database/phpsqlite.db';
-        $pdo = new PDO('sqlite:' . $dir);
-        $sql = "INSERT INTO tasks (title, description, created_at, column_task_id) VALUES (?, ?,  DATETIME('now'), 1)";
-        $stmt = $pdo->prepare($sql);
 
-        $result = $stmt->execute([$title, $description]);
-        if (!$result) {
-            throw new RuntimeException('Erro ao inserir a ideia no banco de dados');
-        }
-        header("Location: /view");
-        exit();
+        $this->submitService->createTask($title, $description);
+
+        return $response->withHeader("Location", "/view");
     }
+
 }
